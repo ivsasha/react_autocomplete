@@ -1,29 +1,47 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import './App.scss';
 import { peopleFromServer } from './data/people';
 import { Persons } from './component/Persons';
 import debounce from 'lodash.debounce';
 import { Person } from './types/Person';
 
-export const App: React.FC = () => {
+interface AppProps {
+  delay?: number;
+}
+
+export const App: React.FC<AppProps> = ({ delay = 300 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPeople, setFilteredPeople] = useState(peopleFromServer);
   const [isActive, setIsActive] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const previousSearchTerm = useRef<string>('');
 
   const debouncedFilter = useCallback(
     debounce((query: string) => {
+      if (query.trim() === previousSearchTerm.current) {
+        return;
+      }
+
+      previousSearchTerm.current = query.trim();
+
       const filtered = peopleFromServer.filter(person =>
         person.name.toLowerCase().includes(query.trim().toLowerCase()),
       );
 
       setFilteredPeople(filtered);
-    }, 300),
-    [],
+    }, delay),
+    [delay],
   );
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
+
+    if (value.trim() === '') {
+      setFilteredPeople(peopleFromServer);
+      setSearchTerm('');
+
+      return;
+    }
 
     setSearchTerm(value);
     setSelectedPerson(null);
@@ -44,6 +62,7 @@ export const App: React.FC = () => {
 
   const handleSelected = (person: Person) => {
     setSelectedPerson(person);
+    setSearchTerm(`${person.name} (${person.born} - ${person.died})`);
   };
 
   return (
