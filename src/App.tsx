@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import './App.scss';
 import { peopleFromServer } from './data/people';
-import { Persons } from './componnent/Persons';
+import { Persons } from './component/Persons';
 import debounce from 'lodash.debounce';
 import { Person } from './types/Person';
 
